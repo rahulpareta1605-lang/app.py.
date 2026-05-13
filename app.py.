@@ -1,0 +1,33 @@
+import streamlit as st
+from google import genai
+import os
+
+st.title("Nexa AI Chat")
+
+# API Key yahan direct dal rahe hain taaki error na aaye
+API_KEY = "AIzaSyAvrcthlC_Dq_UKE99oPX_lbJnsLPOEM3k"
+client = genai.Client(api_key=API_KEY)
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("Kaise madad karoon?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
+        full_response = response.text
+        with st.chat_message("assistant"):
+            st.markdown(full_response)
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
+    except Exception as e:
+        st.error(f"Error: {e}")
